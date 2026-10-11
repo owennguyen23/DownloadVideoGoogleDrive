@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <title>Fetch · Google Drive downloader</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <p class="kicker">Batch downloader</p>
+      <h1 class="wordmark">Fetch<span class="tick">.</span></h1>
+      <p class="lede">Dán link Google Drive, chọn thư mục lưu, tải video về máy. Mỗi link vào một thư mục riêng.</p>
+    </header>
+
+    <form class="setup" id="setupForm" autocomplete="off">
+      <div class="row">
+        <label class="row-label" for="outputDir">Thư mục lưu</label>
+        <div class="row-body">
+          <div class="inline">
+            <input id="outputDir" type="text" placeholder="~/Downloads"
+              aria-describedby="outputDirNote outputDirError" />
+            <button id="pickBtn" class="btn-quiet" type="button">Chọn…</button>
+          </div>
+          <p class="note" id="outputDirNote">Mỗi link sẽ tạo một thư mục con trong thư mục này.</p>
+          <p class="field-error" id="outputDirError" hidden></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="row-label" for="links">Links</label>
+        <div class="row-body">
+          <textarea id="links" rows="5" spellcheck="false"
+            aria-describedby="linksNote linksError"
+            placeholder="https://drive.google.com/drive/mobile/folders/…&#10;https://drive.google.com/file/d/…/view"></textarea>
+          <p class="note" id="linksNote">Mỗi dòng một link. Link cần được chia sẻ ở chế độ “Bất kỳ ai có liên kết”.</p>
+          <p class="field-error" id="linksError" hidden></p>
+        </div>
+      </div>
+
+      <div class="row row-actions">
+        <span class="row-label" aria-hidden="true"></span>
+        <div class="row-body actions">
+          <div class="opts">
+            <div class="opt">
+              <label for="itag">Chất lượng</label>
+              <select id="itag">
+                <option value="22" selected>720p · nét hơn</option>
+                <option value="18">360p · nhẹ hơn</option>
+              </select>
+            </div>
+            <div class="opt opt-num">
+              <label for="concurrency">Tải cùng lúc</label>
+              <input id="concurrency" type="number" min="1" max="8" step="1" value="3" inputmode="numeric" />
+            </div>
+            <div class="opt">
+              <label for="limitMode">Tải về</label>
+              <select id="limitMode">
+                <option value="all" selected>Tất cả video</option>
+                <option value="limit">Giới hạn số lượng</option>
+              </select>
+            </div>
+            <div class="opt opt-num" id="limitField" hidden>
+              <label for="limitCount">Mỗi link</label>
+              <input id="limitCount" type="number" min="1" max="9999" step="1" value="5"
+                inputmode="numeric" aria-describedby="limitError" />
+              <p class="field-error" id="limitError" hidden></p>
+            </div>
+          </div>
+          <div class="commit">
+            <button id="previewBtn" class="btn-quiet" type="button">Xem danh sách</button>
+            <button id="startBtn" class="btn-primary" type="submit">Bắt đầu tải</button>
+            <button id="cancelBtn" class="btn-quiet" type="button" disabled>Hủy</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </form>
+
+    <section id="preview" class="preview" aria-label="Danh sách video" hidden>
+      <div class="preview-head">
+        <h2>Danh sách video</h2>
+        <span id="previewSummary" class="preview-summary"></span>
+      </div>
+      <div id="previewList" class="preview-list"></div>
+    </section>
+
+    <section class="queue" aria-label="Hàng đợi tải">
+      <div class="queue-head">
+        <h2>Hàng đợi</h2>
+        <span id="queueSummary" class="queue-summary"></span>
+      </div>
+      <p id="empty" class="empty">
+        Chưa có gì trong hàng đợi. Dán link Google Drive ở trên rồi bấm <strong>Bắt đầu tải</strong>.
+        <button type="button" id="emptyAction" class="link-action">Dán link</button>
+      </p>
+      <div id="results" class="queue-list" aria-busy="false"></div>
+    </section>
+  </main>
+
+  <template id="previewGroupTpl">
+    <div class="preview-group">
+      <div class="preview-group-head">
+        <span class="preview-name"></span>
+        <span class="preview-count"></span>
+      </div>
+      <ol class="preview-items"></ol>
+    </div>
+  </template>
+
+  <template id="linkTpl">
+    <article class="item">
+      <div class="item-head">
+        <span class="idx" aria-hidden="true">01</span>
+        <div class="item-titles">
+          <h3 class="name">Đang xử lý…</h3>
+          <p class="card-url"></p>
+        </div>
+        <span class="card-state">đang xử lý</span>
+      </div>
+      <div class="files"></div>
+    </article>
+  </template>
+
+  <template id="fileTpl">
+    <div class="file">
+      <div class="file-row">
+        <span class="file-name"></span>
+        <span class="file-meta"></span>
+      </div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="bar-fill"></div>
+      </div>
+    </div>
+  </template>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
